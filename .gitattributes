@@ -1,0 +1,22 @@
+# Line-ending rules for the Maven wrappers, consolidated from the seven per-service
+# .gitattributes files that Spring Initializr generated.
+#
+# Patterns are deliberately NOT anchored with a leading slash. Initializr wrote "/mvnw",
+# which only matches mvnw in the same directory as the .gitattributes file - at the repo
+# root that would match nothing, since the wrappers live one level down in each service.
+
+# mvnw is a POSIX shell script: CRLF endings break it with "bad interpreter: /bin/sh^M"
+# on Linux/macOS/CI, even though Windows tolerates them.
+mvnw text eol=lf
+*.sh text eol=lf
+
+# mvnw.cmd is a Windows batch file and needs CRLF.
+*.cmd text eol=crlf
+
+# Keep git from trying to diff or line-ending-normalise binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.jar binary
