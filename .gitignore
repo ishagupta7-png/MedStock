@@ -1,0 +1,69 @@
+# Root .gitignore for MedStock.
+# Each service also ships its own .gitignore (target/, HELP.md, .idea, .vscode) and
+# frontend/ has one for node_modules/dist. Those nested files only apply inside their own
+# directory, so anything at the repo root - most importantly the shared .idea/ project -
+# has to be listed here.
+
+### IDE / editor ###
+.idea/
+*.iml
+*.ipr
+
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache
+
+### Java / Maven build output ###
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+### Node / frontend build output ###
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+### Logs ###
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+### OS noise ###
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+### Local environment overrides ###
+# Committed application.properties files currently hold the DB password and jwt.secret.
+# They are intentionally NOT ignored, because the services will not start without them -
+# but move those two values to environment variables before this repo goes public, and
+# keep any local-only overrides out of git via the patterns below.
+.env
+.env.local
+.env.*.local
+*application-local.properties
+*application-secrets.properties
+
+### Database dumps / scratch ###
+*.sql.bak
+*.dump
+backup/
