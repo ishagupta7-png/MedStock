@@ -1,0 +1,17 @@
+package com.medstock.branch.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class BranchRequest {
+
+    private String branchName;
+    private String city;
+    private String contactNumber;
+}
