@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import * as transferService from "../../services/transferService";
+import { LoadingState } from "../../components/Spinner";
 
 export default function EscalatedQueuePage() {
   const [requests, setRequests] = useState([]);
@@ -32,7 +33,7 @@ export default function EscalatedQueuePage() {
 
       <div className="card">
         {isLoading ? (
-          <div className="loading-text">Loading...</div>
+          <LoadingState label="Loading escalated requests..." />
         ) : (
           <table>
             <thead>

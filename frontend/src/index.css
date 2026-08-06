@@ -406,11 +406,92 @@ td {
   opacity: 0.5;
 }
 
-.loading-text {
-  text-align: center;
-  padding: 40px 20px;
+/* Says what a result set actually covers, so a filtered search is distinguishable from an
+   unfiltered one at a glance. */
+.result-caption {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
   color: var(--text-muted);
   font-size: 14px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: inline-block;
+  border: 2px solid rgba(15, 118, 110, 0.2);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.spinner-sm {
+  width: 13px;
+  height: 13px;
+}
+
+/* On a filled button, where the brand teal would disappear into the background. */
+.spinner-on-dark {
+  border-color: rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+}
+
+/* On a white-backgrounded button, so the ring picks up that button's own text colour. */
+.spinner-inherit {
+  border-color: rgba(15, 23, 42, 0.15);
+  border-top-color: currentColor;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Respect a reduced-motion preference: still visibly "busy", just not spinning. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2s;
+  }
+}
+
+.btn-spinner-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* A button mid-request must look unavailable, not merely be unavailable - without this, a
+   disabled button is indistinguishable from a live one and invites a second click. */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled:hover {
+  background: var(--primary);
+}
+
+.btn-secondary:disabled:hover {
+  background: #fff;
+  border-color: var(--border);
+}
+
+.btn-danger:disabled:hover {
+  background: #fff;
 }
 
 /* ==========================================================================

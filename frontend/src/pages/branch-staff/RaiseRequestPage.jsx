@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import * as transferService from "../../services/transferService";
 import * as inventoryService from "../../services/inventoryService";
 import * as branchService from "../../services/branchService";
+import { LoadingState, ButtonBusy } from "../../components/Spinner";
 
 const CRITICALITY_OPTIONS = ["CRITICAL", "URGENT", "ROUTINE"];
 
@@ -123,10 +124,14 @@ export default function RaiseRequestPage() {
             onClick={handleCheckAvailability}
             disabled={!medicineName || !quantity || isCheckingAvailability}
           >
-            Check Availability
+            {isCheckingAvailability ? (
+              <ButtonBusy label="Checking..." tone="inherit" />
+            ) : (
+              "Check Availability"
+            )}
           </button>
 
-          {isCheckingAvailability && <div className="loading-text">Loading...</div>}
+          {isCheckingAvailability && <LoadingState label="Checking branch stock..." />}
 
           {availabilityChecked && (
             <div className="form-group">
@@ -166,9 +171,12 @@ export default function RaiseRequestPage() {
 
           {error && <div className="alert-error">{error}</div>}
           {success && <div className="alert-success">{success}</div>}
-          {isLoading && <div className="loading-text">Loading...</div>}
-          <button type="submit" className="btn-primary">
-            Submit Request
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isLoading || isCheckingAvailability}
+          >
+            {isLoading ? <ButtonBusy label="Submitting..." /> : "Submit Request"}
           </button>
         </form>
       </div>

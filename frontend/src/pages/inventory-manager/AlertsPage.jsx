@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import * as alertService from "../../services/alertService";
+import { LoadingState, ButtonBusy } from "../../components/Spinner";
 
 export default function AlertsPage() {
   const { branchId } = useAuth();
   const [alerts, setAlerts] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [resolvingId, setResolvingId] = useState(null);
 
   const loadAlerts = async () => {
     setIsLoading(true);
@@ -25,11 +27,15 @@ export default function AlertsPage() {
   }, [branchId]);
 
   const handleResolve = async (id) => {
+    setError("");
+    setResolvingId(id);
     try {
       await alertService.resolveAlert(id);
-      loadAlerts();
+      await loadAlerts();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to resolve alert.");
+    } finally {
+      setResolvingId(null);
     }
   };
 
@@ -43,7 +49,7 @@ export default function AlertsPage() {
 
       <div className="card">
         {isLoading ? (
-          <div className="loading-text">Loading...</div>
+          <LoadingState />
         ) : (
           <table>
             <thead>
@@ -84,9 +90,14 @@ export default function AlertsPage() {
                         <button
                           type="button"
                           className="btn-primary"
+                          disabled={resolvingId === a.id}
                           onClick={() => handleResolve(a.id)}
                         >
-                          Resolve
+                          {resolvingId === a.id ? (
+                            <ButtonBusy label="Resolving..." />
+                          ) : (
+                            "Resolve"
+                          )}
                         </button>
                       )}
                     </td>

@@ -90,6 +90,16 @@ public class TransferController {
         return ResponseEntity.ok(transferService.getRequestsByBranch(branchId));
     }
 
+    /**
+     * Requests this branch raised. Split out from {@code /branch/{branchId}}, which merges both
+     * directions and left the incoming/sent separation to the client - any caller that forgot to
+     * filter got other branches' requests too.
+     */
+    @GetMapping("/sent/{branchId}")
+    public ResponseEntity<List<TransferResponseDTO>> getSentRequestsForBranch(@PathVariable Long branchId) {
+        return ResponseEntity.ok(transferService.getSentRequestsForBranch(branchId));
+    }
+
     /** Pending requests from other branches that this branch can act on. */
     @GetMapping("/open/{branchId}")
     public ResponseEntity<List<TransferResponseDTO>> getOpenRequestsForBranch(@PathVariable Long branchId) {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ButtonBusy } from "../components/Spinner";
 
 const REDIRECT_BY_ROLE = {
   ADMIN: "/admin/branches",
@@ -53,9 +54,8 @@ export default function LoginPage() {
             />
           </div>
           {error && <div className="alert-error">{error}</div>}
-          {isLoading && <p className="loading-text">Loading...</p>}
-          <button type="submit" className="btn-primary">
-            Login
+          <button type="submit" className="btn-primary" disabled={isLoading}>
+            {isLoading ? <ButtonBusy label="Signing in..." /> : "Login"}
           </button>
         </form>
 

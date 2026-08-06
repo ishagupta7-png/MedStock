@@ -26,6 +26,13 @@ public interface TransferService {
     List<TransferResponseDTO> getRequestsByBranch(Long branchId);
 
     /**
+     * Requests this branch raised itself. Kept separate from {@link #getRequestsByBranch} - that
+     * one merges both directions, and having the caller filter the merged list client-side is how
+     * branches ended up seeing requests that were not theirs.
+     */
+    List<TransferResponseDTO> getSentRequestsForBranch(Long branchId);
+
+    /**
      * Pending requests raised by other branches that this branch may act on, newest priority
      * first, annotated with whether escalation currently points here and whether this branch
      * actually holds the stock.

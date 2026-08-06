@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import * as authService from "../services/authService";
+import { ButtonBusy } from "../components/Spinner";
 
 const ROLES = ["BRANCH_STAFF", "INVENTORY_MANAGER", "WAREHOUSE_ADMIN"];
 
@@ -96,9 +97,10 @@ export default function RegisterPage() {
 
           {error && <div className="alert-error">{error}</div>}
           {success && <div className="alert-success">{success}</div>}
-          {isLoading && <p className="loading-text">Loading...</p>}
-          <button type="submit" className="btn-primary">
-            Register
+          {/* Stays disabled through the post-success redirect delay, so the form cannot be
+              submitted a second time while the navigation is pending. */}
+          <button type="submit" className="btn-primary" disabled={isLoading || !!success}>
+            {isLoading ? <ButtonBusy label="Registering..." /> : "Register"}
           </button>
         </form>
 

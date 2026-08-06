@@ -16,5 +16,8 @@ public interface TransferRequestRepository extends JpaRepository<TransferRequest
 
     List<TransferRequest> findByRequestingBranchIdOrCurrentTargetBranchId(Long requestingBranchId, Long currentTargetBranchId);
 
+    /** Requests this branch raised itself - the outgoing direction only. */
+    List<TransferRequest> findByRequestingBranchId(Long requestingBranchId);
+
     List<TransferRequest> findByStatusAndLastAttemptedAtBefore(TransferStatus status, LocalDateTime cutoff);
 }

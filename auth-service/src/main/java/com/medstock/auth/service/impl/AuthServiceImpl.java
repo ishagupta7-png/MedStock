@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
@@ -39,7 +40,13 @@ public class AuthServiceImpl implements AuthService {
 
     private static final String BRANCH_SERVICE_URL = "http://branch-service/api/branch/branches/{branchId}";
 
+    /**
+     * Transactional so that claiming a warehouse code and creating the account either both happen
+     * or neither does - otherwise a registration that fails after the claim (a username taken in
+     * the meantime) would consume a single-use code and hand back nothing.
+     */
     @Override
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())) {
             throw new AuthException("Username and password are required");
@@ -75,7 +82,9 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setBranchId(branchId);
-        userRepository.save(user);
+        // Flushed here rather than at commit so that the unique-username constraint fires inside
+        // this method, where it still maps cleanly onto the caller's request.
+        userRepository.saveAndFlush(user);
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole(), user.getBranchId());
         return new AuthResponse(token, user.getUsername(), user.getRole(), user.getBranchId());
@@ -141,16 +150,21 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    /**
+     * A warehouse code is single-use, so it is consumed with one conditional update rather than a
+     * read followed by a write - two concurrent registrations could both see it unused and both
+     * proceed. The claim shares this method's transaction, so a later failure (a duplicate
+     * username, say) releases the code instead of burning it.
+     */
     private void redeemWarehouseCode(String code, String username) {
-        WarehouseAccessCode warehouseAccessCode = warehouseAccessCodeRepository.findByCode(code)
-                .orElseThrow(() -> new AuthException("Invalid warehouse code"));
-
-        if (warehouseAccessCode.isUsed()) {
-            throw new AuthException("Warehouse code has already been used");
+        if (warehouseAccessCodeRepository.claimCode(code, username) == 1) {
+            return;
         }
 
-        warehouseAccessCode.setUsed(true);
-        warehouseAccessCode.setAssignedToUsername(username);
-        warehouseAccessCodeRepository.save(warehouseAccessCode);
+        // The claim can fail for two different reasons, and the caller deserves to know which.
+        if (warehouseAccessCodeRepository.findByCode(code).isEmpty()) {
+            throw new AuthException("Invalid warehouse code");
+        }
+        throw new AuthException("Warehouse code has already been used");
     }
 }

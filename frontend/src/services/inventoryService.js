@@ -6,10 +6,15 @@ export const getAllMedicines = () =>
 export const getMedicinesByBranch = (branchId) =>
   api.get(`${INVENTORY_BASE}/medicines/branch/${branchId}`).then((res) => res.data);
 
-export const checkAvailability = (medicineName, requiredQuantity) =>
+/** `city` is optional; when set, the backend narrows results to branches in that city. */
+export const checkAvailability = (medicineName, requiredQuantity, city) =>
   api
     .get(`${INVENTORY_BASE}/medicines/availability`, {
-      params: { medicineName, requiredQuantity },
+      params: {
+        medicineName,
+        requiredQuantity,
+        ...(city ? { city } : {}),
+      },
     })
     .then((res) => res.data);
 

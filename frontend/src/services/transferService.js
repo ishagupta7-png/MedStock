@@ -6,8 +6,13 @@ export const getAllRequests = () =>
 export const getRequestsByStatus = (status) =>
   api.get(`${TRANSFER_BASE}/requests`, { params: { status } }).then((res) => res.data);
 
+/** Both directions merged - callers almost always want getSentRequestsForBranch instead. */
 export const getRequestsByBranch = (branchId) =>
   api.get(`${TRANSFER_BASE}/requests/branch/${branchId}`).then((res) => res.data);
+
+/** Only the requests this branch raised, filtered server-side. */
+export const getSentRequestsForBranch = (branchId) =>
+  api.get(`${TRANSFER_BASE}/requests/sent/${branchId}`).then((res) => res.data);
 
 export const getOpenRequestsForBranch = (branchId) =>
   api.get(`${TRANSFER_BASE}/requests/open/${branchId}`).then((res) => res.data);

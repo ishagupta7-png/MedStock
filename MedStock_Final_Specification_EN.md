@@ -4,6 +4,7 @@
 
 This document defines the entire project — problem, roles, architecture, entities, APIs, business logic, everything in one place. By reading it, the whole system can be built from scratch.
 
+
 ---
 
 # 1. PROBLEM STATEMENT

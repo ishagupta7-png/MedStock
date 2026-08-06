@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import * as transferService from "../../services/transferService";
+import { LoadingState, ButtonBusy } from "../../components/Spinner";
 
 const APPROVAL_LABEL = {
   PENDING: "Awaiting response",
@@ -15,13 +16,15 @@ export default function SentRequestsPage() {
   const [requests, setRequests] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const loadRequests = async () => {
     setIsLoading(true);
     try {
-      const data = await transferService.getRequestsByBranch(branchId);
-      const sent = data.filter((r) => Number(r.requestingBranchId) === Number(branchId));
-      setRequests(sent);
+      // Filtered server-side. This page used to fetch both directions and drop the incoming ones
+      // client-side, which is only ever as correct as the caller remembering to filter.
+      const data = await transferService.getSentRequestsForBranch(branchId);
+      setRequests(data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load your requests.");
     } finally {
@@ -35,14 +38,17 @@ export default function SentRequestsPage() {
 
   const handleDelete = async (id) => {
     setError("");
-    // Drop the row straight away so the click feels immediate, then reconcile with the server.
-    const previous = requests;
-    setRequests((current) => current.filter((r) => r.id !== id));
+    // Marked busy rather than removed optimistically: the server can legitimately refuse this
+    // (a CONFIRMED request, or a branch that does not own it), and a row that vanishes and then
+    // reappears alongside an error reads as a bug rather than as a refusal.
+    setDeletingId(id);
     try {
       await transferService.deleteRequest(id);
+      await loadRequests();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete request.");
-      setRequests(previous); // put it back - the delete did not happen
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -56,7 +62,7 @@ export default function SentRequestsPage() {
 
       <div className="card">
         {isLoading ? (
-          <div className="loading-text">Loading...</div>
+          <LoadingState />
         ) : (
           <table>
             <thead>
@@ -108,9 +114,14 @@ export default function SentRequestsPage() {
                         <button
                           type="button"
                           className="btn-secondary"
+                          disabled={deletingId === r.id}
                           onClick={() => handleDelete(r.id)}
                         >
-                          Delete
+                          {deletingId === r.id ? (
+                            <ButtonBusy label="Deleting..." tone="inherit" />
+                          ) : (
+                            "Delete"
+                          )}
                         </button>
                       )}
                     </td>

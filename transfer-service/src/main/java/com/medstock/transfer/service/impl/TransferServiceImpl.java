@@ -63,18 +63,27 @@ public class TransferServiceImpl implements TransferService {
             throw new IllegalArgumentException("requestingBranchId is required");
         }
 
+        // Validated before anything is built, and outside the degrade-to-PENDING block below: a
+        // request must never be persisted against a branch id that does not exist. The tolerant
+        // lookup used elsewhere returns null for both "no such branch" and "branch-service is
+        // down", so a bogus requesting branch used to be accepted and merely lost its city
+        // preference, leaving a request nobody could trace back to a real branch.
+        BranchResponse requestingBranch = branchClient.getExistingBranch(dto.getRequestingBranchId());
+
         TransferRequest request = new TransferRequest();
         request.setMedicineName(dto.getMedicineName());
         request.setQuantity(dto.getQuantity());
-        request.setRequestingBranchId(dto.getRequestingBranchId());
-        request.setRequestingBranchName(dto.getRequestingBranchName());
+        request.setRequestingBranchId(requestingBranch.getId());
+        // Taken from branch-service rather than the caller, so the name on the request always
+        // matches the branch it points at.
+        request.setRequestingBranchName(requestingBranch.getBranchName());
         request.setCriticality(dto.getCriticality());
         request.setAttemptedBranchIds("");
         request.setRemarks(dto.getRemarks());
 
         List<MedicineAvailabilityResponse> sorted;
         try {
-            String requestingCity = resolveCity(dto.getRequestingBranchId());
+            String requestingCity = requestingBranch.getCity();
             List<MedicineAvailabilityResponse> availability =
                     inventoryClient.checkAvailability(dto.getMedicineName(), dto.getQuantity()).stream()
                             .filter(m -> !dto.getRequestingBranchId().equals(m.getBranchId()))
@@ -272,6 +281,14 @@ public class TransferServiceImpl implements TransferService {
     public List<TransferResponseDTO> getRequestsByBranch(Long branchId) {
         return sortByQueueOrder(
                 transferRequestRepository.findByRequestingBranchIdOrCurrentTargetBranchId(branchId, branchId));
+    }
+
+    @Override
+    public List<TransferResponseDTO> getSentRequestsForBranch(Long branchId) {
+        if (branchId == null) {
+            return List.of();
+        }
+        return sortByQueueOrder(transferRequestRepository.findByRequestingBranchId(branchId));
     }
 
     @Override

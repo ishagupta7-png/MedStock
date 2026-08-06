@@ -41,7 +41,7 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public List<BranchResponse> getBranchesByCity(String city) {
-        return branchRepository.findByCity(city).stream()
+        return branchRepository.findByCityIgnoreCase(city).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }

@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import * as authService from "../../services/authService";
+import { LoadingState, ButtonBusy } from "../../components/Spinner";
 
 export default function WarehouseCodeManagementPage() {
   const [codes, setCodes] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // Separate from isLoading: generating must not blank out the table of existing codes, and a
+  // double click here would mint a second single-use code nobody asked for.
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const loadCodes = async () => {
     setIsLoading(true);
@@ -25,11 +29,14 @@ export default function WarehouseCodeManagementPage() {
   const handleGenerate = async (e) => {
     e.preventDefault();
     setError("");
+    setIsGenerating(true);
     try {
       await authService.generateWarehouseCode();
-      loadCodes();
+      await loadCodes();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to generate warehouse code.");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -41,8 +48,8 @@ export default function WarehouseCodeManagementPage() {
 
       <div className="card">
         <form onSubmit={handleGenerate} className="form-grid">
-          <button type="submit" className="btn-primary">
-            Generate New Code
+          <button type="submit" className="btn-primary" disabled={isGenerating}>
+            {isGenerating ? <ButtonBusy label="Generating..." /> : "Generate New Code"}
           </button>
         </form>
 
@@ -51,7 +58,7 @@ export default function WarehouseCodeManagementPage() {
 
       <div className="card">
         {isLoading ? (
-          <div className="loading-text">Loading...</div>
+          <LoadingState label="Loading codes..." />
         ) : (
           <table>
             <thead>
